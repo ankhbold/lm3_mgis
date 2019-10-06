@@ -50,6 +50,7 @@ class SessionHandler(QObject):
 
         set_role_count = self.session.query(SetRole).filter(SetRole.user_name == user).filter(
             SetRole.is_active == True).count()
+        print (set_role_count)
         if set_role_count == 0:
             QMessageBox.information(None, self.tr("Connection Error"),
                                     self.tr("The user name {0} is not registered.").format(user))

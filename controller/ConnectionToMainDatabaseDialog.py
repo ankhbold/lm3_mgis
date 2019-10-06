@@ -100,22 +100,22 @@ class ConnectionToMainDatabaseDialog(QDialog, Ui_ConnectionToMainDatabaseDialog)
                                      self.tr("input password!!!"))
             return
 
-        try:
-            if not SessionHandler().create_session(user, password, host, port, database):
-                return
-        except (DatabaseError, SQLAlchemyError):
-            PluginUtils.show_error(self, self.tr("Query Error"), self.tr("User name or password is not correct!!!"))
+        # try:
+        if not SessionHandler().create_session(user, password, host, port, database):
             return
+        # except (DatabaseError, SQLAlchemyError):
+        #     PluginUtils.show_error(self, self.tr("Query Error"), self.tr("User name or password is not correct!!!"))
+        #     return
 
-        session = SessionHandler().session_instance()
-
-        conf = session.query(SdConfiguration).filter(SdConfiguration.code == 'setup_version').one()
-
-        if str(Constants.SETUP_VERSION) != conf.value:
-            PluginUtils.show_message(self, u'Анхааруулга',
-                                     u'Програмын шинэ хувилбарыг суулгана уу! ' + conf.description )
-            self.__is_version = True
-            return
+        # session = SessionHandler().session_instance()
+        #
+        # conf = session.query(SdConfiguration).filter(SdConfiguration.code == 'setup_version').one()
+        #
+        # if str(Constants.SETUP_VERSION) != conf.value:
+        #     PluginUtils.show_message(self, u'Анхааруулга',
+        #                              u'Програмын шинэ хувилбарыг суулгана уу! ' + conf.description )
+        #     self.__is_version = True
+        #     return
         # self.__layers_permission(user, password, host, port, database)
         self.reject()
 
