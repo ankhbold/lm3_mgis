@@ -10,7 +10,6 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from ..model.Singleton import Singleton
 
-
 class DialogInspector(QObject):
 
     __metaclass__ = Singleton

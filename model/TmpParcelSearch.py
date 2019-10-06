@@ -3,7 +3,7 @@ __author__ = 'ankhbold'
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 from ClLanduseType import *
-from Base import *
+from .Base import *
 
 
 class TmpParcelSearch(Base):

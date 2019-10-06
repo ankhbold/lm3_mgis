@@ -7,30 +7,11 @@ from sqlalchemy.exc import DatabaseError
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import func
 from datetime import date, datetime
-from ..model.DialogInspector import DialogInspector
-from ..controller.ConnectionToMainDatabaseDialog import *
 from .SessionHandler import SessionHandler
-from ..model import SettingsConstants
-from ..model.Enumerations import UserRight
-from ..model.CaParcel import CaParcel
-from ..model.CtApplication import CtApplication
-from ..model.CaTmpBuilding import CaTmpBuilding
-from ..model.CaTmpParcel import CaTmpParcel
-from ..model.LM2Exception import LM2Exception
-from ..model.CtApplicationStatus import *
-from ..model.CaMaintenanceCase import *
-from ..model import Constants
-from ..model.SdUser import *
-from ..model.SdEmployee import *
-from ..model.BsPerson import *
-from ..model.SdFtpPermission import *
-from ..model.SdFtpConnection import *
-from ..model.SdAutoNumbers import *
-from ..model.Constants import *
 from ftplib import FTP, error_perm
 import urllib
 import hashlib
-from ..LM2Plugin import *
+from ..LM3Plugin import *
 
 class DatabaseUtils():
 
@@ -43,129 +24,129 @@ class DatabaseUtils():
         session = SessionHandler().session_instance()
         convRights = []
 
-        try:
-            sql = "select rolname from pg_user join pg_auth_members on (pg_user.usesysid=pg_auth_members.member) " \
-                  "join pg_roles on (pg_roles.oid=pg_auth_members.roleid) where pg_user.usename=:bindName;"
+        # try:
+        sql = "select rolname from pg_user join pg_auth_members on (pg_user.usesysid=pg_auth_members.member) " \
+              "join pg_roles on (pg_roles.oid=pg_auth_members.roleid) where pg_user.usename=:bindName;"
 
-            result = session.execute(sql, {'bindName': user_name}).fetchall()
+        result = session.execute(sql, {'bindName': user_name}).fetchall()
 
-            for right_result in result:
+        for right_result in result:
 
-                if right_result[0] == UserRight.cadastre_view:
-                    convRights.append(UserRight.cadastre_view)
-                elif right_result[0] == UserRight.cadastre_update:
-                    convRights.append(UserRight.cadastre_update)
-                elif right_result[0] == UserRight.contracting_update:
-                    convRights.append(UserRight.contracting_update)
-                elif right_result[0] == UserRight.contracting_view:
-                    convRights.append(UserRight.contracting_view)
-                elif right_result[0] == UserRight.land_office_admin:
-                    convRights.append(UserRight.land_office_admin)
-                elif right_result[0] == UserRight.reporting:
-                    convRights.append(UserRight.reporting)
-                elif right_result[0] == UserRight.application_update:
-                    convRights.append(UserRight.application_update)
-                elif right_result[0] == UserRight.application_view:
-                    convRights.append(UserRight.application_view)
+            if right_result[0] == UserRight.cadastre_view:
+                convRights.append(UserRight.cadastre_view)
+            elif right_result[0] == UserRight.cadastre_update:
+                convRights.append(UserRight.cadastre_update)
+            elif right_result[0] == UserRight.contracting_update:
+                convRights.append(UserRight.contracting_update)
+            elif right_result[0] == UserRight.contracting_view:
+                convRights.append(UserRight.contracting_view)
+            elif right_result[0] == UserRight.land_office_admin:
+                convRights.append(UserRight.land_office_admin)
+            elif right_result[0] == UserRight.reporting:
+                convRights.append(UserRight.reporting)
+            elif right_result[0] == UserRight.application_update:
+                convRights.append(UserRight.application_update)
+            elif right_result[0] == UserRight.application_view:
+                convRights.append(UserRight.application_view)
             
-        except exc.SQLAlchemyError, e:
-            session.rollback()
-            raise LM2Exception(QApplication.translate("LM2", "Database Query Error"),
-                               QApplication.translate("LM2", "Could not execute: {0}").format(e.message))
+        # except exc.SQLAlchemyError, e:
+        #     session.rollback()
+        #     raise LM2Exception(QApplication.translate("LM2", "Database Query Error"),
+        #                        QApplication.translate("LM2", "Could not execute: {0}").format(e.message))
 
         return convRights
 
     @staticmethod
     def current_user():
 
-        try:
-            session = SessionHandler().session_instance()
-            user = QSettings().value(SettingsConstants.USER)
-            if not session:
+        # try:
+        session = SessionHandler().session_instance()
+        user = QSettings().value(SettingsConstants.USER)
+        if not session:
+            QMessageBox.information(None, QApplication.translate("LM2", "Role Error"),
+                                    QApplication.translate("LM2", "No User Connection To Main Database"))
+            if DialogInspector().dialog_visible():
+                return
+
+            # dlg = ConnectionToMainDatabaseDialog()
+
+            DialogInspector().set_dialog_visible(True)
+            #dlg.rejected.connect(self.on_current_dialog_rejected)
+            # dlg.exec_()
+
+            SessionHandler().destroy_session()
+
+            #self.__update_database_connection(dlg.get_password())
+
+        else:
+            set_role_count = session.query(SetRole).filter(SetRole.user_name == user).filter(SetRole.is_active == True).count()
+            if set_role_count == 0:
                 QMessageBox.information(None, QApplication.translate("LM2", "Role Error"),
                                         QApplication.translate("LM2", "No User Connection To Main Database"))
-                if DialogInspector().dialog_visible():
-                    return
-
-                # dlg = ConnectionToMainDatabaseDialog()
-
-                DialogInspector().set_dialog_visible(True)
-                #dlg.rejected.connect(self.on_current_dialog_rejected)
-                # dlg.exec_()
-
-                SessionHandler().destroy_session()
-
-                #self.__update_database_connection(dlg.get_password())
-
+                return
             else:
-                set_role_count = session.query(SetRole).filter(SetRole.user_name == user).filter(SetRole.is_active == True).count()
-                if set_role_count == 0:
-                    QMessageBox.information(None, QApplication.translate("LM2", "Role Error"),
-                                            QApplication.translate("LM2", "No User Connection To Main Database"))
-                    return
-                else:
-                    set_role = session.query(SetRole).filter(SetRole.user_name == user).filter(SetRole.is_active == True).one()
-                    return set_role
+                set_role = session.query(SetRole).filter(SetRole.user_name == user).filter(SetRole.is_active == True).one()
+                return set_role
 
-        except exc.SQLAlchemyError, e:
-            QMessageBox.information(None, QApplication.translate("LM2", "Database Query Error"),
-                               QApplication.translate("LM2", "Could not execute: {0}").format(e.message))
+        # except exc.SQLAlchemyError, e:
+        #     QMessageBox.information(None, QApplication.translate("LM2", "Database Query Error"),
+        #                        QApplication.translate("LM2", "Could not execute: {0}").format(e.message))
 
     @staticmethod
     def current_user_organization():
 
-        try:
-            session = SessionHandler().session_instance()
-            user = QSettings().value(SettingsConstants.USER)
-            if not session:
+        # try:
+        session = SessionHandler().session_instance()
+        user = QSettings().value(SettingsConstants.USER)
+        if not session:
+            QMessageBox.information(None, QApplication.translate("LM2", "Role Error"),
+                                    QApplication.translate("LM2", "No User Connection To Main Database"))
+            if DialogInspector().dialog_visible():
+                return
+
+            DialogInspector().set_dialog_visible(True)
+            SessionHandler().destroy_session()
+        else:
+            set_role_count = session.query(SetRole).filter(SetRole.user_name == user).filter(SetRole.is_active == True).count()
+            if set_role_count == 0:
                 QMessageBox.information(None, QApplication.translate("LM2", "Role Error"),
                                         QApplication.translate("LM2", "No User Connection To Main Database"))
-                if DialogInspector().dialog_visible():
-                    return
-
-                DialogInspector().set_dialog_visible(True)
-                SessionHandler().destroy_session()
+                return None
             else:
-                set_role_count = session.query(SetRole).filter(SetRole.user_name == user).filter(SetRole.is_active == True).count()
-                if set_role_count == 0:
-                    QMessageBox.information(None, QApplication.translate("LM2", "Role Error"),
-                                            QApplication.translate("LM2", "No User Connection To Main Database"))
-                    return None
-                else:
-                    set_role = session.query(SetRole).filter(SetRole.user_name == user).filter(SetRole.is_active == True).one()
-                    return set_role.organization
+                set_role = session.query(SetRole).filter(SetRole.user_name == user).filter(SetRole.is_active == True).one()
+                return set_role.organization
 
-        except exc.SQLAlchemyError, e:
-            QMessageBox.information(None, QApplication.translate("LM2", "Database Query Error"),
-                               QApplication.translate("LM2", "Could not execute: {0}").format(e.message))
+        # except exc.SQLAlchemyError, e:
+        #     QMessageBox.information(None, QApplication.translate("LM2", "Database Query Error"),
+        #                        QApplication.translate("LM2", "Could not execute: {0}").format(e.message))
 
     @staticmethod
     def current_sd_user():
 
-        try:
-            session = SessionHandler().session_instance()
-            user = QSettings().value(SettingsConstants.USER)
-            if not session:
+        # try:
+        session = SessionHandler().session_instance()
+        user = QSettings().value(SettingsConstants.USER)
+        if not session:
+            QMessageBox.information(None, QApplication.translate("LM2", "Role Error"),
+                                    QApplication.translate("LM2", "No User Connection To Main Database"))
+            if DialogInspector().dialog_visible():
+                return
+            DialogInspector().set_dialog_visible(True)
+            SessionHandler().destroy_session()
+        else:
+            set_role_count = session.query(SetRole).filter(SetRole.user_name == user).filter(SetRole.is_active == True).count()
+            if set_role_count == 0:
                 QMessageBox.information(None, QApplication.translate("LM2", "Role Error"),
                                         QApplication.translate("LM2", "No User Connection To Main Database"))
-                if DialogInspector().dialog_visible():
-                    return
-                DialogInspector().set_dialog_visible(True)
-                SessionHandler().destroy_session()
+                return
             else:
-                set_role_count = session.query(SetRole).filter(SetRole.user_name == user).filter(SetRole.is_active == True).count()
-                if set_role_count == 0:
-                    QMessageBox.information(None, QApplication.translate("LM2", "Role Error"),
-                                            QApplication.translate("LM2", "No User Connection To Main Database"))
-                    return
-                else:
-                    set_role = session.query(SetRole).filter(SetRole.user_name == user).filter(SetRole.is_active == True).one()
-                    sd_user = session.query(SdUser).filter(SdUser.gis_user_real == set_role.user_name_real).first()
-                    return sd_user
+                set_role = session.query(SetRole).filter(SetRole.user_name == user).filter(SetRole.is_active == True).one()
+                sd_user = session.query(SdUser).filter(SdUser.gis_user_real == set_role.user_name_real).first()
+                return sd_user
 
-        except exc.SQLAlchemyError, e:
-            QMessageBox.information(None, QApplication.translate("LM2", "Database Query Error"),
-                               QApplication.translate("LM2", "Could not execute: {0}").format(e.message))
+        # except exc.SQLAlchemyError, e:
+        #     QMessageBox.information(None, QApplication.translate("LM2", "Database Query Error"),
+        #                        QApplication.translate("LM2", "Could not execute: {0}").format(e.message))
 
     @staticmethod
     def current_date_time():
@@ -176,52 +157,52 @@ class DatabaseUtils():
     @staticmethod
     def get_sd_user(user_id):
 
-        try:
-            session = SessionHandler().session_instance()
+        # try:
+        session = SessionHandler().session_instance()
 
-            sd_user = session.query(SdUser).filter(SdUser.user_id == user_id).first()
-            return sd_user
+        sd_user = session.query(SdUser).filter(SdUser.user_id == user_id).first()
+        return sd_user
 
-        except exc.SQLAlchemyError, e:
-            QMessageBox.information(None, QApplication.translate("LM2", "Database Query Error"),
-                                    QApplication.translate("LM2", "Could not execute: {0}").format(e.message))
+        # except exc.SQLAlchemyError, e:
+        #     QMessageBox.information(None, QApplication.translate("LM2", "Database Query Error"),
+        #                             QApplication.translate("LM2", "Could not execute: {0}").format(e.message))
 
     @staticmethod
     def get_sd_employee(user_id):
 
-        try:
-            session = SessionHandler().session_instance()
-            sd_employee_count = session.query(SdEmployee).filter(SdEmployee.user_id == user_id).count()
-            if sd_employee_count > 0:
-                sd_employee = session.query(SdEmployee).filter(SdEmployee.user_id == user_id).first()
-            else:
-                sd_user = session.query(SdUser).filter(SdUser.user_id == user_id).first()
-                set_role = session.query(SetRole).filter(SetRole.user_name_real == sd_user.gis_user_real).one()
-                sd_employee = session.query(SdEmployee). \
-                    join(BsPerson, BsPerson.person_id == SdEmployee.person_id). \
-                    filter(func.upper(BsPerson.person_register) == func.upper(set_role.user_register)).first()
+        # try:
+        session = SessionHandler().session_instance()
+        sd_employee_count = session.query(SdEmployee).filter(SdEmployee.user_id == user_id).count()
+        if sd_employee_count > 0:
+            sd_employee = session.query(SdEmployee).filter(SdEmployee.user_id == user_id).first()
+        else:
+            sd_user = session.query(SdUser).filter(SdUser.user_id == user_id).first()
+            set_role = session.query(SetRole).filter(SetRole.user_name_real == sd_user.gis_user_real).one()
+            sd_employee = session.query(SdEmployee). \
+                join(BsPerson, BsPerson.person_id == SdEmployee.person_id). \
+                filter(func.upper(BsPerson.person_register) == func.upper(set_role.user_register)).first()
 
-            return sd_employee
+        return sd_employee
 
-        except exc.SQLAlchemyError, e:
-            QMessageBox.information(None, QApplication.translate("LM2", "Database Query Error"),
-                                    QApplication.translate("LM2", "Could not execute: {0}").format(e.message))
+        # except exc.SQLAlchemyError, e:
+        #     QMessageBox.information(None, QApplication.translate("LM2", "Database Query Error"),
+        #                             QApplication.translate("LM2", "Could not execute: {0}").format(e.message))
 
     @staticmethod
     def codelist_by_name(schema, name, primary, description):
 
         session = SessionHandler().session_instance()
         lookup = {}
-        try:
-            sql = "Select {0}, {1} from {2}.{3};".format(primary, description, schema, name)
-            result = session.execute(sql).fetchall()
+        # try:
+        sql = "Select {0}, {1} from {2}.{3};".format(primary, description, schema, name)
+        result = session.execute(sql).fetchall()
 
-            for row in result:
-                lookup[row[0]] = row[1]
+        for row in result:
+            lookup[row[0]] = row[1]
 
-        except exc.SQLAlchemyError, e:
-            raise LM2Exception(QApplication.translate("LM2", "Database Query Error"),
-                               QApplication.translate("LM2", "Could not execute: {0}").format(e.message))
+        # except exc.SQLAlchemyError, e:
+        #     raise LM2Exception(QApplication.translate("LM2", "Database Query Error"),
+        #                        QApplication.translate("LM2", "Could not execute: {0}").format(e.message))
 
         return lookup
 
@@ -295,36 +276,36 @@ class DatabaseUtils():
     @staticmethod
     def working_l1_code():
 
-        try:
-            role = DatabaseUtils.current_user()
-            if role:
-                return role.working_au_level1
-            else:
-                QMessageBox.information(None, QApplication.translate("LM2", "Database disconnect"),
-                                        QApplication.translate("LM2",
-                                                               "Please connect to database!!!"))
-                return
-        except DatabaseError, e:
-            raise LM2Exception(QApplication.translate("Connection Error"),
-                               QApplication.translate("Plugin", "Database disconnected!"))
+        # try:
+        role = DatabaseUtils.current_user()
+        if role:
+            return role.working_au_level1
+        else:
+            QMessageBox.information(None, QApplication.translate("LM2", "Database disconnect"),
+                                    QApplication.translate("LM2",
+                                                           "Please connect to database!!!"))
+            return
+        # except DatabaseError, e:
+        #     raise LM2Exception(QApplication.translate("Connection Error"),
+        #                        QApplication.translate("Plugin", "Database disconnected!"))
 
     @staticmethod
     def working_l2_code():
 
         is_session = True
-        try:
-            role = DatabaseUtils.current_user()
-            if role:
-                return role.working_au_level2
-            else:
-                QMessageBox.information(None, QApplication.translate("LM2", "Database disconnect"),
-                                        QApplication.translate("LM2",
-                                                               "Please connect to database!!!"))
-                is_session = False
+        # try:
+        role = DatabaseUtils.current_user()
+        if role:
+            return role.working_au_level2
+        else:
+            QMessageBox.information(None, QApplication.translate("LM2", "Database disconnect"),
+                                    QApplication.translate("LM2",
+                                                           "Please connect to database!!!"))
+            is_session = False
 
-        except DatabaseError, e:
-            raise LM2Exception(QApplication.translate("Connection Error"),
-                               QApplication.translate("Plugin", "Database disconnected!"))
+        # except DatabaseError, e:
+        #     raise LM2Exception(QApplication.translate("Connection Error"),
+        #                        QApplication.translate("Plugin", "Database disconnected!"))
 
         if not is_session:
             database = QSettings().value(SettingsConstants.DATABASE_NAME)
@@ -335,11 +316,11 @@ class DatabaseUtils():
             text, ok = QtGui.QInputDialog.getText(None, "QInputDialog.getText()",
                                                   "user password:", QtGui.QLineEdit.Password)
             password = text
-            try:
-                if not SessionHandler().create_session(user, password, host, port, database):
-                    return
-            except SQLAlchemyError, e:
+            # try:
+            if not SessionHandler().create_session(user, password, host, port, database):
                 return
+            # except SQLAlchemyError, e:
+            #     return
 
     @staticmethod
     def current_working_soum_schema():
@@ -368,37 +349,37 @@ class DatabaseUtils():
         if first_code is None:
             first_code = DatabaseUtils.current_working_soum_schema()
 
-        try:
-            session.begin_nested()
-            l1_working_code = DatabaseUtils.working_l1_code()
+        # try:
+        session.begin_nested()
+        l1_working_code = DatabaseUtils.working_l1_code()
 
-            #in case of districts - sort after l1 code
-            if l1_working_code[:2] == "01":
-                search_path_array = DatabaseUtils.l2_restriction_array()
+        #in case of districts - sort after l1 code
+        if l1_working_code[:2] == "01":
+            search_path_array = DatabaseUtils.l2_restriction_array()
+        else:
+            search_path_array = DatabaseUtils.l2_restriction_array()
+
+        found_code = False
+        schema_list = []
+
+        for item in search_path_array:
+            au_level2 = item.strip()
+
+            if item == first_code:
+                found_code = True
             else:
-                search_path_array = DatabaseUtils.l2_restriction_array()
+                schema_list.append("s" + au_level2)
 
-            found_code = False
-            schema_list = []
+        if found_code:
+            schema_list.insert(0, "s" + first_code.strip())
 
-            for item in search_path_array:
-                au_level2 = item.strip()
+        session.execute(set_search_path)
+        session.commit()
 
-                if item == first_code:
-                    found_code = True
-                else:
-                    schema_list.append("s" + au_level2)
-
-            if found_code:
-                schema_list.insert(0, "s" + first_code.strip())
-
-            session.execute(set_search_path)
-            session.commit()
-
-        except DatabaseError, e:
-            session.rollback()
-            raise LM2Exception(QApplication.translate("LM2", "Database Query Error"),
-                               QApplication.translate("LM2", "Could not execute: {0}").format(e.message))
+        # except DatabaseError, e:
+        #     session.rollback()
+        #     raise LM2Exception(QApplication.translate("LM2", "Database Query Error"),
+        #                        QApplication.translate("LM2", "Could not execute: {0}").format(e.message))
 
     @staticmethod
     def file_data(file_path):
@@ -451,23 +432,23 @@ class DatabaseUtils():
 
         session = SessionHandler().session_instance()
 
-        try:
-            m_case = session.query(CaMaintenanceCase).filter(CaMaintenanceCase.id == case_id).one()
-            if m_case.completion_date is not None:
-                QMessageBox.information(None, QApplication.translate("LM2", "Maintenance Case"),
-                                        QApplication.translate("LM2", "The maintenance case {0} is already finalized."
-                                                               .format(str(case_id))))
-                return
+        # try:
+        m_case = session.query(CaMaintenanceCase).filter(CaMaintenanceCase.id == case_id).one()
+        if m_case.completion_date is not None:
+            QMessageBox.information(None, QApplication.translate("LM2", "Maintenance Case"),
+                                    QApplication.translate("LM2", "The maintenance case {0} is already finalized."
+                                                           .format(str(case_id))))
+            return
 
-            session.query(CaTmpParcel).filter(CaTmpParcel.maintenance_case == case_id).delete()
-            session.query(CaTmpBuilding).filter(CaTmpBuilding.maintenance_case == case_id).delete()
-            session.query(CaMaintenanceCase).filter(CaMaintenanceCase.id == case_id).delete()
-            session.commit()
+        session.query(CaTmpParcel).filter(CaTmpParcel.maintenance_case == case_id).delete()
+        session.query(CaTmpBuilding).filter(CaTmpBuilding.maintenance_case == case_id).delete()
+        session.query(CaMaintenanceCase).filter(CaMaintenanceCase.id == case_id).delete()
+        session.commit()
 
-        except exc.SQLAlchemyError, e:
-            session.rollback()
-            raise LM2Exception(QApplication.translate("LM2", "Database Query Error"),
-                               QApplication.translate("LM2", "Could not execute: {0}").format(e.message))
+        # except exc.SQLAlchemyError, e:
+        #     session.rollback()
+        #     raise LM2Exception(QApplication.translate("LM2", "Database Query Error"),
+        #                        QApplication.translate("LM2", "Could not execute: {0}").format(e.message))
 
     @staticmethod
     def ftp_connect():
@@ -485,19 +466,19 @@ class DatabaseUtils():
 
             retry = True
             while (retry):
-                try:
-                    ftp = FTP(ftp_host)
+                # try:
+                ftp = FTP(ftp_host)
 
-                    ftp.login(ftp_user, ftp_pass)
-                    retry = False
-                    # QMessageBox.information(None, QApplication.translate("LM2", "FTP connection"),
-                    #                         QApplication.translate("LM2",
-                    #                                                "Yeeesss babaaaaay"))
-                    return [ftp, ftp_connection]
-                except IOError as e:
-                    retry = True
-                    QMessageBox.information(None, QApplication.translate("LM2", "FTP connection"),
-                                            QApplication.translate("LM2",
-                                                                   "Error ftp connection"))
+                ftp.login(ftp_user, ftp_pass)
+                retry = False
+                # QMessageBox.information(None, QApplication.translate("LM2", "FTP connection"),
+                #                         QApplication.translate("LM2",
+                #                                                "Yeeesss babaaaaay"))
+                return [ftp, ftp_connection]
+                # except IOError as e:
+                #     retry = True
+                #     QMessageBox.information(None, QApplication.translate("LM2", "FTP connection"),
+                #                             QApplication.translate("LM2",
+                #                                                    "Error ftp connection"))
             else:
                 return None

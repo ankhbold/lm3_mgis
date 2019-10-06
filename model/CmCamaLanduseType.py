@@ -2,8 +2,7 @@ __author__ = 'B.Ankhbold'
 
 from sqlalchemy import Column, String, Integer, ForeignKey
 from sqlalchemy.orm import relationship
-from Base import *
-
+from .Base import *
 
 class CmCamaLanduseType(Base):
 

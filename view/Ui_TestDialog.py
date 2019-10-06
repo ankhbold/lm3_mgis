@@ -28,3 +28,13 @@ class Ui_TestDialog(object):
         self.test_button.setText(_translate("TestDialog", "TEST"))
         self.close_button.setText(_translate("TestDialog", "Close"))
 
+
+if __name__ == "__main__":
+    import sys
+    app = QtWidgets.QApplication(sys.argv)
+    TestDialog = QtWidgets.QDialog()
+    ui = Ui_TestDialog()
+    ui.setupUi(TestDialog)
+    TestDialog.show()
+    sys.exit(app.exec_())
+

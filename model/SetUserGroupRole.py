@@ -2,13 +2,15 @@ __author__ = 'B.Ankhbold'
 
 from sqlalchemy import Column, Date, ForeignKey, Integer, String, Boolean
 from sqlalchemy.orm import relationship
-from Base import *
+from .Base import *
+from .SetRole import *
+from .ClGroupRole import *
 
 class SetUserGroupRole(Base):
 
     __tablename__ = 'set_user_group_role'
 
-    user_name_real = Column(String, ForeignKey("set_role.user_name_real"), primary_key=True)
+    user_name_real = Column(String, ForeignKey("set_role_user.user_name_real"), primary_key=True)
     user_name_real_ref = relationship("SetRole")
 
     group_role = Column(Integer, ForeignKey("cl_group_role.code"), primary_key=True)

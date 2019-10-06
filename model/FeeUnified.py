@@ -1,8 +1,7 @@
 __author__ = 'B.Ankhbold'
 
 from sqlalchemy import Column, Integer, String, Date, Float
-from Base import *
-
+from .Base import *
 
 class FeeUnified(Base):
 

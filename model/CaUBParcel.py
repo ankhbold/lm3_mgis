@@ -3,8 +3,8 @@ __author__ = 'B.Ankhbold'
 from sqlalchemy import Column, String, Float, Date, ForeignKey, Integer, Table
 from sqlalchemy.orm import relationship
 from geoalchemy2 import Geometry
-from ClLanduseType import *
-from ClUbEditStatus import *
+from .ClLanduseType import *
+from .ClUbEditStatus import *
 
 class CaUBParcel(Base):
 

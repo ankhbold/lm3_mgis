@@ -2,7 +2,7 @@ __author__ = 'B.Ankhbold'
 
 from sqlalchemy import Column, Integer, String, Date, ForeignKey,Sequence
 from sqlalchemy.orm import relationship, backref
-from Base import *
+from .Base import *
 
 class SdAutoNumbers(Base):
 

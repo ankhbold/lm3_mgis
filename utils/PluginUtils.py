@@ -3,17 +3,13 @@ __author__ = 'B.Ankhbold'
 # -*- coding: utf-8
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
 from qgis.core import QgsTolerance
 from datetime import date, datetime
-from ..model.CtApplication import CtApplication
-from ..model.CtApplicationStatus import CtApplicationStatus
-from ..model.ClApplicationStatus import ClApplicationStatus
-from ..model.CtOwnershipRecord import CtOwnershipRecord
 from ..model.LM2Exception import LM2Exception
 from ..model.SdUser import SdUser
-from ..model.CtContract import CtContract
 from ..model.SetRole import SetRole
-from ..model.CaMaintenanceCase import CaMaintenanceCase
+
 from ..model.AuLevel1 import AuLevel1
 from ..model.AuLevel2 import AuLevel2
 from ..model.AuLevel3 import AuLevel3
@@ -22,12 +18,12 @@ from ..model import SettingsConstants
 from ..model import Constants
 from ..model.SdUser import *
 from ..model.SdAutoNumbers import *
-from ..utils.LM2Logger import LM2Logger
+from ..utils.LM3Logger import LM3Logger
 from geoalchemy2 import func
 from sqlalchemy import func, or_, and_, desc
 from sqlalchemy.exc import SQLAlchemyError
-from ..utils.DatabaseUtils import DatabaseUtils
-from SessionHandler import SessionHandler
+from ..utils.DatabaseUtils import *
+from .SessionHandler import SessionHandler
 import os
 import hashlib
 
@@ -183,7 +179,7 @@ class PluginUtils(object):
     def show_message(parent, title, message):
 
         if PluginUtils.is_logging_enabled():
-            LM2Logger().log_message(message)
+            LM3Logger().log_message(message)
 
         message_box = QMessageBox(QMessageBox.Information, title, message, QMessageBox.Ok,
                                   parent, Qt.WindowStaysOnTopHint)
@@ -193,7 +189,7 @@ class PluginUtils(object):
     def show_error(parent, title, message):
 
         if PluginUtils.is_logging_enabled():
-            LM2Logger().log_message(message)
+            LM3Logger().log_message(message)
         message_box = QMessageBox()
         message_box = QMessageBox(QMessageBox.Warning, title, message, QMessageBox.Ok,
                                   parent, Qt.WindowStaysOnTopHint)

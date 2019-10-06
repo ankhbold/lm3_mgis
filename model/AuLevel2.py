@@ -3,8 +3,8 @@ __author__ = 'B.Ankhbold'
 from sqlalchemy import Column, String, Float, ForeignKey
 from sqlalchemy.orm import relationship
 from geoalchemy2 import Geometry
-from Base import *
-
+from .Base import *
+from .AuLevel1 import *
 
 class AuLevel2(Base):
 

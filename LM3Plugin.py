@@ -25,12 +25,19 @@ from PyQt5.QtCore import QSettings, QTranslator, qVersion, QCoreApplication
 from PyQt5.QtGui import QIcon
 # from PyQt5.QtWidgets import QAction
 from PyQt5.QtWidgets import *
-import qgis.core
-from qgis.core import QgsRasterLayer
+from qgis.core import *
 
 # Initialize Qt resources from file resources.py
 # from .resources import *
 # Import the code for the dialog
+from .view import resources_rc
+from .utils.DatabaseUtils import *
+from .utils.PluginUtils import PluginUtils
+from .utils.SessionHandler import SessionHandler
+from .utils.LM3Logger import *
+from .model import SettingsConstants
+from .model.DialogInspector import DialogInspector
+from .controller.ConnectionToMainDatabaseDialog import *
 from .controller.TestDialog import TestDialog
 from .test_plugin_dialog import LM3PluginDialog
 import os.path
@@ -72,6 +79,26 @@ class LM3Plugin:
         # Check if plugin was started the first time in current QGIS session
         # Must be set in initGui() to survive plugin reloads
         self.first_start = None
+
+    def __add_repository(self):
+
+        repository = QSettings().value(SettingsConstants.REPOSITORY_URL, None)
+        if repository is None:
+            QSettings().setValue(SettingsConstants.REPOSITORY_URL, Constants.REPOSITORY_URL)
+            QSettings().setValue(SettingsConstants.REPOSITORY_ENABLED, True)
+
+    def __create_db_session(self, password):
+
+        user = QSettings().value(SettingsConstants.USER)
+        db = QSettings().value(SettingsConstants.DATABASE_NAME)
+        host = QSettings().value(SettingsConstants.HOST)
+        port = QSettings().value(SettingsConstants.PORT, "5432")
+
+        SessionHandler().create_session(user, password, host, port, db)
+
+    def __destroy_db_session(self):
+
+        SessionHandler().destroy_session()
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -173,7 +200,8 @@ class LM3Plugin:
     def initGui(self):
         """Create the menu entries and toolbar icons inside the QGIS GUI."""
 
-        icon_path = ':/plugins/lm2/about.png'
+        self.action = QAction(QIcon(":/plugins/testplug/icon.png"), "Test plugin", self.iface.mainWindow())
+        icon_path = ':/plugins/lm3/about.png'
         self.add_action(
             icon_path,
             text=self.tr(u''),
@@ -183,15 +211,356 @@ class LM3Plugin:
         # will be set False in run()
         self.first_start = True
 
+        self.set_db_connection = QAction(QIcon(":/plugins/lm3/connection_to_main.png"),
+                                         QApplication.translate("Plugin", "Set Connection To Main Database"),
+                                         self.iface.mainWindow())
+        self.user_role_management_action = QAction(QIcon(":/plugins/lm3/user_role_management.png"),
+                                                   QApplication.translate("Plugin", "User Role Management"),
+                                                   self.iface.mainWindow())
+        self.admin_settings_action = QAction(QIcon(":/plugins/lm3/land_office_admin.png"),
+                                             QApplication.translate("Plugin", "Administrative Settings"),
+                                             self.iface.mainWindow())
+        self.help_action = QAction(QIcon(":/plugins/lm3/help_button.png"), QApplication.translate("Plugin", "Help"),
+                                   self.iface.mainWindow())
+        self.create_case_action = QAction(QIcon(":/plugins/lm3/case.png"),
+                                          QApplication.translate("Plugin", "Create Maintenance Case"),
+                                          self.iface.mainWindow())
+        self.person_action = QAction(QIcon(":/plugins/lm3/person.png"), QApplication.translate("Plugin", "Add Person"),
+                                     self.iface.mainWindow())
+
+        self.applications_action = QAction(QIcon(":/plugins/lm3/application.png"),
+                                           QApplication.translate("Plugin", "Add Application"), self.iface.mainWindow())
+        self.contract_action = QAction(QIcon(":/plugins/lm3/contract.png"),
+                                       QApplication.translate("Plugin", "Add Contract"), self.iface.mainWindow())
+        self.ownership_action = QAction(QIcon(":/plugins/lm3/land_ownership.png"),
+                                        QApplication.translate("Plugin", "Add Ownership Record"),
+                                        self.iface.mainWindow())
+        self.import_decision_action = QAction(QIcon(":/plugins/lm3/import_decision.png"),
+                                              QApplication.translate("Plugin", "Import Decision"),
+                                              self.iface.mainWindow())
+        self.mark_apps_action = QAction(QIcon(":/plugins/lm3/send_to_governor.png"),
+                                        QApplication.translate("Plugin", "Mark Apps As Sent To Governor"),
+                                        self.iface.mainWindow())
+        self.print_cadastre_map_action = QAction(QIcon(":/plugins/lm3/extract.png"),
+                                                 QApplication.translate("Plugin", "Print cadastre map"),
+                                                 self.iface.mainWindow())
+        self.print_point_map_action = QAction(QIcon(":/plugins/lm3_pasture/point.png"),
+                                              QApplication.translate("Plugin",
+                                                                     "Show pasture monitroing point information"),
+                                              self.iface.mainWindow())
+        # self.print_cadastre_map_action.setCheckable(True)
+
+
+        self.about_action = QAction(QIcon(":/plugins/lm3/about.png"), QApplication.translate("Plugin", "About"),
+                                    self.iface.mainWindow())
+        self.document_action = QAction(QIcon(":/plugins/lm3/documents.png"),
+                                       QApplication.translate("Plugin", "Official documents"), self.iface.mainWindow())
+        # self.manage_parcel_records_action = QAction(QIcon(":/plugins/lm3/landfeepayment.png"), QApplication.translate("Plugin", "Manage Parcel Record"), self.iface.mainWindow())
+        self.cama_navigator_action = QAction(QIcon(":/plugins/lm3/landfeepayment.png"),
+                                             QApplication.translate("Plugin", "Parcel Mpa Info"),
+                                             self.iface.mainWindow())
+        self.cama_navigator_action.setCheckable(True)
+        self.database_dump_action = QAction(QIcon(":/plugins/lm3/landfeepayment.png"),
+                                            QApplication.translate("Plugin", "Database Dump"), self.iface.mainWindow())
+
+        self.webgis_utility_action = QAction(QIcon(":/plugins/lm3/webgis.png"),
+                                             QApplication.translate("Plugin", "WebGIS Utility"),
+                                             self.iface.mainWindow())
+        # self.reports_action = QAction(QIcon(":/plugins/lm3/landfeepayment.png"), QApplication.translate("Plugin", "GTs Reports"), self.iface.mainWindow())
+
+        ###
+        self.navigator_action = QAction(QIcon(":/plugins/lm3/navigator.png"),
+                                        QApplication.translate("Plugin", "Show/Hide Navigator"),
+                                        self.iface.mainWindow())
+        self.navigator_action.setCheckable(True)
+        ###
+        self.pasture_use_action = QAction(QIcon(":/plugins/lm3_pasture/crops.png"),
+                                          QApplication.translate("Plugin", "PUA / ER"),
+                                          self.iface.mainWindow())
+        self.pasture_use_action.setCheckable(True)
+        ###
+        self.nature_reserve_action = QAction(QIcon(":/plugins/lm3/nature_reserve.png"),
+                                             QApplication.translate("Plugin",
+                                                                    "Nature reserve"),
+                                             self.iface.mainWindow())
+        self.nature_reserve_action.setCheckable(True)
+        ###
+        self.parcel_map_action = QAction(QIcon(":/plugins/lm3/parcel_grey.png"),
+                                         QApplication.translate("Plugin", "Parcel Info"),
+                                         self.iface.mainWindow())
+        self.parcel_map_action.setCheckable(True)
+        ###
+        self.parcel_mpa_action = QAction(QIcon(":/plugins/lm3/mpa_logo.png"),
+                                         QApplication.translate("Plugin", "Parcel Mpa Info"),
+                                         self.iface.mainWindow())
+        self.parcel_mpa_action.setCheckable(True)
+
+        ###
+        self.parcel_spa_action = QAction(QIcon(":/plugins/lm3/spa_logo.png"),
+                                         QApplication.translate("Plugin", "SPA Parcel Info"),
+                                         self.iface.mainWindow())
+        self.parcel_spa_action.setCheckable(True)
+
+        ### GZBT navigator
+        self.land_plan_navigator_action = QAction(QIcon(":/plugins/lm3/land_plan.png"),
+                                                  QApplication.translate("Plugin", "Land plan info"),
+                                                  self.iface.mainWindow())
+        self.land_plan_navigator_action.setCheckable(True)
+
+        # connect the action to the run method
+        self.set_db_connection.triggered.connect(self.__show_connection_to_main_database_dialog)
+        # self.admin_settings_action.triggered.connect(self.__show_land_office_admin_settings_dialog)
+        # self.user_role_management_action.triggered.connect(self.__show_user_role_management_dialog)
+        # self.help_action.triggered.connect(self.__show_help)
+        # self.person_action.triggered.connect(self.__show_person_dialog)
+        # self.navigator_action.triggered.connect(self.__show_navigator_widget)
+        # self.applications_action.triggered.connect(self.__show_applications_dialog)
+        # self.contract_action.triggered.connect(self.__show_contract_dialog)
+        # self.ownership_action.triggered.connect(self.__show_ownership_dialog)
+        # self.mark_apps_action.triggered.connect(self.__mark_apps_as_send_to_govenor)
+        # self.create_case_action.triggered.connect(self.__show_create_case_dialog)
+        # self.import_decision_action.triggered.connect(self.__show_import_decision_dialog)
+        # self.document_action.triggered.connect(self.__show_documents_dialog)
+        # self.about_action.triggered.connect(self.__show_about_dialog)
+        # self.print_cadastre_map_action.triggered.connect(self.__start_print_cadastre_map)
+        # self.print_cadastre_map_action.setCheckable(True)
+        #
+        # self.print_point_map_action.triggered.connect(self.__start_print_point_map)
+        # self.print_point_map_action.setCheckable(True)
+        #
+        # # self.manage_parcel_records_action.triggered.connect(self.__show_manage_parcel_records_dialog)
+        # self.cama_navigator_action.triggered.connect(self.__show_cama_navigator_widget)
+        # self.database_dump_action.triggered.connect(self.__show_database_dump_dialog)
+        # self.webgis_utility_action.triggered.connect(self.__show_webgis_utility_action)
+        # self.pasture_use_action.triggered.connect(self.__show_pasture_navigator_widget)
+        # self.nature_reserve_action.triggered.connect(self.__show_natural_reserve_navigator_widget)
+        # self.parcel_map_action.triggered.connect(self.__show_parcel_navigator_widget)
+        # self.parcel_mpa_action.triggered.connect(self.__show_parcel_mpa_navigator_widget)
+        # self.parcel_spa_action.triggered.connect(self.__show_parcel_spa_navigator_widget)
+        # # self.reports_action.triggered.connect(self.__show_reports_dialog)
+        # self.land_plan_navigator_action.triggered.connect(self.__show_plan_navigator_widget)
+
+        # Add toolbar button and menu item
+        self.lm_toolbar = self.iface.addToolBar(QApplication.translate("Plugin", "LandManager 3"))
+
+        self.lm_toolbar.addSeparator()
+        self.lm_toolbar.addAction(self.parcel_map_action)
+        self.lm_toolbar.addAction(self.parcel_mpa_action)
+        self.lm_toolbar.addAction(self.parcel_spa_action)
+        self.lm_toolbar.addSeparator()
+        self.lm_toolbar.addSeparator()
+        # self.lm_toolbar.addAction(self.manage_parcel_records_action)
+        self.lm_toolbar.addAction(self.cama_navigator_action)
+        self.lm_toolbar.addSeparator()
+        self.lm_toolbar.addSeparator()
+        self.lm_toolbar.addAction(self.pasture_use_action)
+        self.lm_toolbar.addAction(self.print_point_map_action)
+        self.lm_toolbar.addAction(self.nature_reserve_action)
+        self.lm_toolbar.addSeparator()
+        self.lm_toolbar.addSeparator()
+        self.lm_toolbar.addAction(self.land_plan_navigator_action)
+        self.lm_toolbar.addSeparator()
+        self.lm_toolbar.addSeparator()
+        self.lm_toolbar.addAction(self.navigator_action)
+        self.lm_toolbar.addAction(self.create_case_action)
+        self.lm_toolbar.addAction(self.print_cadastre_map_action)
+        # self.lm_toolbar.addSeparator()
+        self.lm_toolbar.addAction(self.mark_apps_action)
+        self.lm_toolbar.addAction(self.import_decision_action)
+
+        self.lm_toolbar.addSeparator()
+
+        self.lm_toolbar.addAction(self.webgis_utility_action)
+        self.lm_toolbar.addAction(self.document_action)
+        self.lm_toolbar.addSeparator()
+        self.lm_toolbar.addSeparator()
+        self.lm_toolbar.addAction(self.admin_settings_action)
+        self.lm_toolbar.addAction(self.user_role_management_action)
+        self.lm_toolbar.addAction(self.set_db_connection)
+        self.lm_toolbar.addSeparator()
+
+        # Retrieve main menu bar
+        menu_bar = self.iface.mainWindow().menuBar()
+        actions = menu_bar.actions()
+
+        # Create menus
+        self.lm_menu = QMenu()
+        self.lm_menu.setTitle(QApplication.translate("Plugin", "&lm3_MGIS"))
+        menu_bar.addMenu(self.lm_menu)
+
+        # Cadastre menu
+        self.cadastre_menu = QMenu()
+        self.cadastre_menu.setTitle(QApplication.translate("Plugin", "Cadastre"))
+        self.cadastre_menu.addAction(self.print_cadastre_map_action)
+        self.cadastre_menu.addAction(self.create_case_action)
+        self.cadastre_menu.addSeparator()
+
+        # self.toolButton = QToolButton()
+        #
+        # self.toolButton.setMenu( self.cadastre_menu )
+        # self.toolButton.setDefaultAction( self.create_case_action )
+        # self.toolButton.setPopupMode( QToolButton.InstantPopup )
+        # self.iface.addToolBarWidget( self.toolButton )
+
+        # Applications/Decisions menu
+        self.application_menu = QMenu()
+        self.application_menu.setTitle(QApplication.translate("Plugin", "Applications/Decisions"))
+        self.application_menu.addAction(self.person_action)
+        self.application_menu.addAction(self.applications_action)
+        self.application_menu.addSeparator()
+        self.application_menu.addAction(self.mark_apps_action)
+        self.application_menu.addAction(self.import_decision_action)
+
+        # Contract/Ownership menu
+        self.contract_menu = QMenu()
+        self.contract_menu.setTitle(QApplication.translate("Plugin", "Contract/Ownership"))
+        self.contract_menu.addAction(self.contract_action)
+        self.contract_menu.addAction(self.ownership_action)
+
+        # Add actions and menus to lm3 menu
+        self.lm_menu.addAction(self.document_action)
+        self.lm_menu.addAction(self.set_db_connection)
+        self.lm_menu.addAction(self.admin_settings_action)
+        self.lm_menu.addAction(self.user_role_management_action)
+        self.lm_menu.addSeparator()
+        self.lm_menu.addMenu(self.cadastre_menu)
+        self.lm_menu.addMenu(self.application_menu)
+        self.lm_menu.addSeparator()
+        self.lm_menu.addMenu(self.contract_menu)
+        self.lm_menu.addSeparator()
+        self.lm_menu.addAction(self.navigator_action)
+        # self.lm_menu.addAction(self.manage_parcel_records_action)
+        self.lm_menu.addAction(self.database_dump_action)
+        self.lm_menu.addAction(self.webgis_utility_action)
+        self.lm_menu.addSeparator()
+        self.lm_menu.addAction(self.pasture_use_action)
+        self.lm_menu.addAction(self.nature_reserve_action)
+        self.lm_menu.addAction(self.parcel_spa_action)
+        # self.lm_menu.addAction(self.print_point_map_action)
+        self.lm_menu.addSeparator()
+        self.lm_menu.addAction(self.help_action)
+        self.lm_menu.addAction(self.about_action)
+
+        self.navigatorWidget = None
+        self.parcelInfoWidget = None
+        self.pastureWidget = None
+        self.naturalReserveWidget = None
+        self.spaParcelWidget = None
+        self.parcelMpaInfoWidget = None
+        self.planWidget = None
+        self.planDetailWidget = None
+        self.camaWidget = None
+        self.removeLayers()
+        # self.__set_menu_visibility()
+        # self.__setup_slots()
 
     def unload(self):
         """Removes the plugin menu item and icon from QGIS GUI."""
+        self.iface.removePluginMenu(QApplication.translate("Plugin", "&lm3"), self.create_case_action)
+        self.iface.removePluginMenu(QApplication.translate("Plugin", "&lm3"), self.import_decision_action)
+        self.iface.removePluginMenu(QApplication.translate("Plugin", "&lm3"), self.applications_action)
+        self.iface.removePluginMenu(QApplication.translate("Plugin", "&lm3"), self.person_action)
+        self.iface.removePluginMenu(QApplication.translate("Plugin", "&lm3"), self.contract_action)
+        self.iface.removePluginMenu(QApplication.translate("Plugin", "&lm3"), self.ownership_action)
+        self.iface.removePluginMenu(QApplication.translate("Plugin", "&lm3"), self.navigator_action)
+        self.iface.removePluginMenu(QApplication.translate("Plugin", "&lm3"), self.admin_settings_action)
+        self.iface.removePluginMenu(QApplication.translate("Plugin", "&lm3"), self.set_db_connection)
+        self.iface.removePluginMenu(QApplication.translate("Plugin", "&lm3"), self.user_role_management_action)
+        self.iface.removePluginMenu(QApplication.translate("Plugin", "&lm3"), self.help_action)
+        self.iface.removePluginMenu(QApplication.translate("Plugin", "&lm3"), self.print_cadastre_map_action)
+        self.iface.removePluginMenu(QApplication.translate("Plugin", "&lm3"), self.parcel_map_action)
+        self.iface.removePluginMenu(QApplication.translate("Plugin", "&lm3"), self.document_action)
+        # self.iface.removePluginMenu(QApplication.translate("Plugin", "&lm3"), self.manage_parcel_records_action)
+        self.iface.removePluginMenu(QApplication.translate("Plugin", "&lm3"), self.cama_navigator_action)
+        self.iface.removePluginMenu(QApplication.translate("Plugin", "&lm3"), self.database_dump_action)
+        self.iface.removePluginMenu(QApplication.translate("Plugin", "&lm3"), self.webgis_utility_action)
+        self.iface.removePluginMenu(QApplication.translate("Plugin", "&lm3"), self.pasture_use_action)
+        self.iface.removePluginMenu(QApplication.translate("Plugin", "&lm3"), self.nature_reserve_action)
+        self.iface.removePluginMenu(QApplication.translate("Plugin", "&lm3"), self.parcel_spa_action)
+        self.iface.removePluginMenu(QApplication.translate("Plugin", "&lm3"), self.print_point_map_action)
+        self.iface.removePluginMenu(QApplication.translate("Plugin", "&lm3"), self.land_plan_navigator_action)
+
+        del self.lm_toolbar
+
         for action in self.actions:
             self.iface.removePluginMenu(
                 self.tr(u'&Test Plugin'),
                 action)
             self.iface.removeToolBarIcon(action)
 
+
+    def __show_connection_to_main_database_dialog(self):
+
+        if DialogInspector().dialog_visible():
+            return
+
+        dlg = ConnectionToMainDatabaseDialog(self.iface, self.iface.mainWindow())
+
+        DialogInspector().set_dialog_visible(True)
+        dlg.rejected.connect(self.on_current_dialog_rejected)
+        if not dlg.exec_():
+            if dlg.get_is_version():
+                self.__disable_menu()
+                return
+            if self.navigatorWidget != None:
+                if self.navigatorWidget.isVisible():
+                    self.navigatorWidget.hide()
+
+            if self.parcelInfoWidget != None:
+                if self.parcelInfoWidget.isVisible():
+                    self.parcelInfoWidget.hide()
+
+            if self.pastureWidget != None:
+                if self.pastureWidget.isVisible():
+                    self.pastureWidget.hide()
+
+            if self.naturalReserveWidget != None:
+                if self.naturalReserveWidget.isVisible():
+                    self.naturalReserveWidget.hide()
+
+            if self.spaParcelWidget != None:
+                if self.spaParcelWidget.isVisible():
+                    self.spaParcelWidget.hide()
+
+            if self.parcelMpaInfoWidget != None:
+                if self.parcelMpaInfoWidget.isVisible():
+                    self.parcelMpaInfoWidget.hide()
+
+            if self.planWidget != None:
+                if self.planWidget.isVisible():
+                    self.planWidget.hide()
+
+            SessionHandler().destroy_session()
+            self.is_expired = dlg.get_expired()
+
+            self.__update_database_connection(dlg.get_password(), self.is_expired)
+        else:
+            self.__disable_menu()
+            SessionHandler().destroy_session()
+
+    @pyqtSlot()
+    def __update_database_connection(self, p_password, is_expired=True):
+
+        if not SessionHandler().session_instance():
+
+            database_name = QSettings().value(SettingsConstants.DATABASE_NAME)
+            port = QSettings().value(SettingsConstants.PORT, "5432")
+            user_name = QSettings().value(SettingsConstants.USER)
+            server = QSettings().value(SettingsConstants.HOST)
+
+            for key in QgsProject.instance().mapLayers():
+                layer = QgsProject.instance().mapLayers()[key]
+                if layer.type() == QgsMapLayer.VectorLayer and layer.dataProvider().name() == "postgres":
+                    uri = QgsDataSourceUri(layer.source())
+                    if uri.database() == database_name and user_name == uri.username() \
+                            and server == uri.host() and port == uri.port() and p_password == uri.password() \
+                            and not is_expired:
+                        self.__create_db_session(uri.password())
+                        self.__set_menu_visibility()
+                        self.__refresh_layer()
+                        break
+                    else:
+                        self.__disable_menu()
 
     def run(self):
         """Run method that performs all the real work"""
@@ -211,3 +580,126 @@ class LM3Plugin:
             # Do something useful here - delete the line containing pass and
             # substitute with your code.
             pass
+    def removeLayers(self):
+
+        project = QgsProject.instance()
+        isDirty = project.isDirty()
+
+        layer = self.getLayerById("boundary_points")
+        if layer != None:
+            QgsProject.instance().removeMapLayer(layer.id())
+
+        layer = self.getLayerById("boundary_lines")
+        if layer != None:
+            QgsProject.instance().removeMapLayer(layer.id())
+
+        layer = self.getLayerById("boundary_polygon")
+        if layer != None:
+            QgsProject.instance().removeMapLayer(layer.id())
+
+        layer = self.getLayerById("boundary_outline")
+        if layer != None:
+            QgsProject.instance().removeMapLayer(layer.id())
+
+        layer = self.getLayerById("building_points")
+        if layer != None:
+            QgsProject.instance().removeMapLayer(layer.id())
+
+        layer = self.getLayerById("building_polygon")
+        if layer != None:
+            QgsProject.instance().removeMapLayer(layer.id())
+
+        layer = self.getLayerById("building_lines")
+        if layer != None:
+            QgsProject.instance().removeMapLayer(layer.id())
+
+        # if not isDirty:
+        #     project.dirty(False)
+
+    def __setup_slots(self):
+
+        self.connect(QgsProject.instance(), SIGNAL("layerWasAdded(QgsMapLayer*)"), self.__update_database_connection)
+
+    def getLayerById(self, layerId):
+
+        layermap = QgsProject.instance().mapLayers()
+        for id, layer in layermap.items():
+            if layer.name() == layerId:
+                return layer
+        return None
+
+    def __enable_menu(self, user_rights):
+
+        self.navigator_action.setEnabled(True)
+        self.pasture_use_action.setEnabled(True)
+        self.nature_reserve_action.setEnabled(True)
+        self.parcel_spa_action.setEnabled(True)
+        self.parcel_map_action.setEnabled(True)
+        self.land_plan_navigator_action.setEnabled(True)
+        self.cama_navigator_action.setEnabled(True)
+        self.about_action.setEnabled(True)
+
+        self.__create_navigator()
+
+        # self.__create_pasture()
+
+        # self.__create_mpa()
+
+        # self.__create_parcel_info()
+
+        if UserRight.cadastre_view in user_rights or UserRight.cadastre_update in user_rights:
+            self.create_case_action.setEnabled(True)
+            self.mark_apps_action.setEnabled(True)
+        else:
+            self.create_case_action.setEnabled(False)
+            self.mark_apps_action.setEnabled(False)
+
+        if UserRight.contracting_view in user_rights or UserRight.contracting_update in user_rights:
+            self.contract_action.setEnabled(True)
+            self.ownership_action.setEnabled(True)
+            self.import_decision_action.setEnabled(True)
+            self.applications_action.setEnabled(True)
+            self.mark_apps_action.setEnabled(True)
+            self.person_action.setEnabled(True)
+            self.print_cadastre_map_action.setEnabled(True)
+            self.document_action.setEnabled(True)
+            # self.manage_parcel_records_action.setEnabled(True)
+            self.database_dump_action.setEnabled(False)
+            self.webgis_utility_action.setEnabled(True)
+        else:
+            self.contract_action.setEnabled(False)
+            self.ownership_action.setEnabled(False)
+            self.import_decision_action.setEnabled(False)
+            self.applications_action.setEnabled(False)
+            self.person_action.setEnabled(False)
+            self.mark_apps_action.setEnabled(False)
+            self.document_action.setEnabled(False)
+            # self.manage_parcel_records_action.setEnabled(False)
+            self.database_dump_action.setEnabled(True)
+            self.webgis_utility_action.setEnabled(False)
+
+    def __disable_menu(self):
+
+        self.create_case_action.setEnabled(False)
+        self.about_action.setEnabled(False)
+        self.import_decision_action.setEnabled(False)
+        self.applications_action.setEnabled(False)
+        self.person_action.setEnabled(False)
+        self.contract_action.setEnabled(False)
+        self.ownership_action.setEnabled(False)
+        self.navigator_action.setEnabled(False)
+        self.mark_apps_action.setEnabled(False)
+        self.parcel_map_action.setEnabled(False)
+        self.document_action.setEnabled(False)
+        # self.manage_parcel_records_action.setEnabled(False)
+        self.cama_navigator_action.setEnabled(False)
+        self.database_dump_action.setEnabled(True)
+        self.webgis_utility_action.setEnabled(False)
+        self.pasture_use_action.setEnabled(False)
+        self.nature_reserve_action.setEnabled(False)
+        self.parcel_spa_action.setEnabled(False)
+        self.land_plan_navigator_action.setEnabled(False)
+
+    def on_current_dialog_rejected(self):
+
+        DialogInspector().set_dialog_visible(False)

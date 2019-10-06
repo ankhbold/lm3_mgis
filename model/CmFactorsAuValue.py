@@ -4,8 +4,7 @@ __author__ = 'B.Ankhbold'
 from sqlalchemy import Column, String, Float, Date, DateTime, ForeignKey, Integer, Table, Boolean, Numeric
 from sqlalchemy.orm import relationship
 from geoalchemy2 import Geometry
-from ClLanduseType import *
-
+from .ClLanduseType import *
 
 class CmFactorsAuValue(Base):
 

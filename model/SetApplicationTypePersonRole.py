@@ -2,8 +2,9 @@ __author__ = 'B.Ankhbold'
 
 from sqlalchemy import Column, ForeignKey, Integer, Boolean
 from sqlalchemy.orm import relationship
-from Base import *
-
+from .Base import *
+from .ClPersonRole import *
+from .ClApplicationType import *
 
 class SetApplicationTypePersonRole(Base):
 

@@ -2,7 +2,6 @@ __author__ = 'B.Ankhbold'
 
 from ..utils.SessionHandler import SessionHandler
 
-
 class DatabaseHelper():
 
     def __init__(self):

@@ -2,8 +2,7 @@ __author__ = 'B.Ankhbold'
 
 from sqlalchemy import Column, String, Float, Integer
 from geoalchemy2 import Geometry
-from Base import *
-
+from .Base import *
 
 class AuMpaZone(Base):
 

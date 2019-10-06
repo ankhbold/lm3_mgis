@@ -16,7 +16,7 @@ class LayerUtils(object):
 
     @staticmethod
     def layer_by_name(layer_name):
-        layers = QgsMapLayerRegistry.instance().mapLayers()
+        layers = QgsProject.instance().mapLayers()
 
         for id, layer in layers.iteritems():
             if layer.name() == layer_name:
@@ -27,12 +27,12 @@ class LayerUtils(object):
     @staticmethod
     def layer_by_data_source(schema_name, table_name):
 
-        layers = QgsMapLayerRegistry.instance().mapLayers()
+        layers = QgsProject.instance().mapLayers()
 
         for id, layer in layers.iteritems():
             if layer.type() == QgsMapLayer.VectorLayer:
                 uri_string = layer.dataProvider().dataSourceUri()
-                uri = QgsDataSourceURI(uri_string)
+                uri = QgsDataSourceUri(uri_string)
                 if uri.table() == table_name:
                     if uri.schema() == schema_name:
                         return layer
@@ -40,7 +40,7 @@ class LayerUtils(object):
     @staticmethod
     def load_temp_table(sql, layer_name):
 
-        uri = QgsDataSourceURI()
+        uri = QgsDataSourceUri()
         user = QSettings().value(SettingsConstants.USER)
         db = QSettings().value(SettingsConstants.DATABASE_NAME)
         host = QSettings().value(SettingsConstants.HOST)
@@ -51,7 +51,7 @@ class LayerUtils(object):
         uri.setDataSource("", sql, "geometry", "", "gid")
 
         vlayer = QgsVectorLayer(uri.uri(), layer_name, "postgres")
-        QgsMapLayerRegistry.instance().addMapLayer(vlayer, False)
+        QgsProject.instance().addMapLayer(vlayer, False)
         return vlayer
 
     @staticmethod
@@ -62,7 +62,7 @@ class LayerUtils(object):
         if len(restrictions) > 0:
             for restriction in restrictions:
                 restriction = restriction.strip()
-                uri = QgsDataSourceURI()
+                uri = QgsDataSourceUri()
                 user = QSettings().value(SettingsConstants.USER)
                 db = QSettings().value(SettingsConstants.DATABASE_NAME)
                 host = QSettings().value(SettingsConstants.HOST)
@@ -73,13 +73,13 @@ class LayerUtils(object):
                 uri.setDataSource("s" + restriction, layer_name, "geometry", "", id)
 
                 vlayer = QgsVectorLayer(uri.uri(), "s" + restriction + "_" + layer_name, "postgres")
-                QgsMapLayerRegistry.instance().addMapLayer(vlayer)
+                QgsProject.instance().addMapLayer(vlayer)
                 return vlayer
 
     @staticmethod
     def load_union_layer_by_name(layer_name, id):
 
-        uri = QgsDataSourceURI()
+        uri = QgsDataSourceUri()
         user = QSettings().value(SettingsConstants.USER)
         db = QSettings().value(SettingsConstants.DATABASE_NAME)
         host = QSettings().value(SettingsConstants.HOST)
@@ -90,13 +90,13 @@ class LayerUtils(object):
         uri.setDataSource("data_soums_union", layer_name, "geometry", "", id)
 
         vlayer = QgsVectorLayer(uri.uri(), "data_soums_union" + "_" + layer_name, "postgres")
-        QgsMapLayerRegistry.instance().addMapLayer(vlayer, False)
+        QgsProject.instance().addMapLayer(vlayer, False)
         return vlayer
 
     @staticmethod
     def load_ub_data_layer_by_name(layer_name, id):
 
-        uri = QgsDataSourceURI()
+        uri = QgsDataSourceUri()
         user = QSettings().value(SettingsConstants.USER)
         db = QSettings().value(SettingsConstants.DATABASE_NAME)
         host = QSettings().value(SettingsConstants.HOST)
@@ -107,7 +107,7 @@ class LayerUtils(object):
         uri.setDataSource("data_ub", layer_name, "geometry", "", id)
 
         vlayer = QgsVectorLayer(uri.uri(), layer_name, "postgres")
-        QgsMapLayerRegistry.instance().addMapLayer(vlayer, False)
+        QgsProject.instance().addMapLayer(vlayer, False)
         return vlayer
 
     @staticmethod
@@ -118,7 +118,7 @@ class LayerUtils(object):
         if len(restrictions) > 0:
             for restriction in restrictions:
                 restriction = restriction.strip()
-                uri = QgsDataSourceURI()
+                uri = QgsDataSourceUri()
                 user = QSettings().value(SettingsConstants.USER)
                 db = QSettings().value(SettingsConstants.DATABASE_NAME)
                 host = QSettings().value(SettingsConstants.HOST)
@@ -129,13 +129,13 @@ class LayerUtils(object):
                 uri.setDataSource("s" + restriction, layer_name, "geometry", "", id)
 
                 vlayer = QgsVectorLayer(uri.uri(), layer_name, "postgres")
-                QgsMapLayerRegistry.instance().addMapLayer(vlayer,False)
+                QgsProject.instance().addMapLayer(vlayer,False)
                 return vlayer
 
     @staticmethod
     def load_tmp_layer_by_name(layer_name, id, shema):
 
-        uri = QgsDataSourceURI()
+        uri = QgsDataSourceUri()
         user = QSettings().value(SettingsConstants.USER)
         db = QSettings().value(SettingsConstants.DATABASE_NAME)
         host = QSettings().value(SettingsConstants.HOST)
@@ -146,13 +146,13 @@ class LayerUtils(object):
         uri.setDataSource(shema, layer_name, "geometry", "", id)
 
         vlayer = QgsVectorLayer(uri.uri(), layer_name, "postgres")
-        QgsMapLayerRegistry.instance().addMapLayer(vlayer, False)
+        QgsProject.instance().addMapLayer(vlayer, False)
         return vlayer
 
     @staticmethod
     def load_layer_by_name_equipment(layer_name, id):
 
-        uri = QgsDataSourceURI()
+        uri = QgsDataSourceUri()
         user = QSettings().value(SettingsConstants.USER)
         db = QSettings().value(SettingsConstants.DATABASE_NAME)
         host = QSettings().value(SettingsConstants.HOST)
@@ -163,13 +163,13 @@ class LayerUtils(object):
         uri.setDataSource("settings", layer_name, "geometry", "", id)
 
         vlayer = QgsVectorLayer(uri.uri(), layer_name, "postgres")
-        QgsMapLayerRegistry.instance().addMapLayer(vlayer, False)
+        QgsProject.instance().addMapLayer(vlayer, False)
         return vlayer
 
     @staticmethod
     def load_layer_base_layer(layer_name, id, schema_name):
 
-        uri = QgsDataSourceURI()
+        uri = QgsDataSourceUri()
         user = QSettings().value(SettingsConstants.USER)
         db = QSettings().value(SettingsConstants.DATABASE_NAME)
         host = QSettings().value(SettingsConstants.HOST)
@@ -180,14 +180,14 @@ class LayerUtils(object):
         uri.setDataSource(schema_name, layer_name, "geometry", "", id)
 
         vlayer = QgsVectorLayer(uri.uri(), layer_name, "postgres")
-        QgsMapLayerRegistry.instance().addMapLayer(vlayer, False)
+        QgsProject.instance().addMapLayer(vlayer, False)
         return vlayer
 
     @staticmethod
     def check_layer_by_name(layer_name):
 
         is_value = False
-        for lyr in QgsMapLayerRegistry.instance().mapLayers().values():
+        for lyr in QgsProject.instance().mapLayers().values():
             print lyr.name()
             if lyr.name() == layer_name:
                 print lyr.name()
@@ -196,8 +196,8 @@ class LayerUtils(object):
                 is_value = True
                 break
 
-        # for key in QgsMapLayerRegistry.instance().mapLayers():
-        #     layer = QgsMapLayerRegistry.instance().mapLayers()[key]
+        # for key in QgsProject.instance().mapLayers():
+        #     layer = QgsProject.instance().mapLayers()[key]
         #     if layer.name() == layer_name:
         #         print 'hh'
         #         is_value = True
@@ -207,7 +207,7 @@ class LayerUtils(object):
     @staticmethod
     def load_plan_layer_base_layer(layer_name, id, schema_name, geometry_column):
 
-        uri = QgsDataSourceURI()
+        uri = QgsDataSourceUri()
         user = QSettings().value(SettingsConstants.USER)
         db = QSettings().value(SettingsConstants.DATABASE_NAME)
         host = QSettings().value(SettingsConstants.HOST)
@@ -218,13 +218,13 @@ class LayerUtils(object):
         uri.setDataSource(schema_name, layer_name, geometry_column, "", id)
 
         vlayer = QgsVectorLayer(uri.uri(), layer_name, "postgres")
-        QgsMapLayerRegistry.instance().addMapLayer(vlayer, False)
+        QgsProject.instance().addMapLayer(vlayer, False)
         return vlayer
 
     @staticmethod
     def load_polygon_layer_base_layer(layer_name, id, schema_name):
 
-        uri = QgsDataSourceURI()
+        uri = QgsDataSourceUri()
         user = QSettings().value(SettingsConstants.USER)
         db = QSettings().value(SettingsConstants.DATABASE_NAME)
         host = QSettings().value(SettingsConstants.HOST)
@@ -235,13 +235,13 @@ class LayerUtils(object):
         uri.setDataSource(schema_name, layer_name, "polygon_geom", "", id)
 
         vlayer = QgsVectorLayer(uri.uri(), layer_name, "postgres")
-        QgsMapLayerRegistry.instance().addMapLayer(vlayer, False)
+        QgsProject.instance().addMapLayer(vlayer, False)
         return vlayer
 
     @staticmethod
     def load_point_layer_base_layer(layer_name, id, schema_name):
 
-        uri = QgsDataSourceURI()
+        uri = QgsDataSourceUri()
         user = QSettings().value(SettingsConstants.USER)
         db = QSettings().value(SettingsConstants.DATABASE_NAME)
         host = QSettings().value(SettingsConstants.HOST)
@@ -252,13 +252,13 @@ class LayerUtils(object):
         uri.setDataSource(schema_name, layer_name, "point_geom", "", id)
 
         vlayer = QgsVectorLayer(uri.uri(), layer_name, "postgres")
-        QgsMapLayerRegistry.instance().addMapLayer(vlayer, False)
+        QgsProject.instance().addMapLayer(vlayer, False)
         return vlayer
 
     @staticmethod
     def load_line_layer_base_layer(layer_name, id, schema_name):
 
-        uri = QgsDataSourceURI()
+        uri = QgsDataSourceUri()
         user = QSettings().value(SettingsConstants.USER)
         db = QSettings().value(SettingsConstants.DATABASE_NAME)
         host = QSettings().value(SettingsConstants.HOST)
@@ -269,7 +269,7 @@ class LayerUtils(object):
         uri.setDataSource(schema_name, layer_name, "line_geom", "", id)
 
         vlayer = QgsVectorLayer(uri.uri(), layer_name, "postgres")
-        QgsMapLayerRegistry.instance().addMapLayer(vlayer, False)
+        QgsProject.instance().addMapLayer(vlayer, False)
         return vlayer
 
     @staticmethod
@@ -280,7 +280,7 @@ class LayerUtils(object):
         if len(restrictions) > 0:
             for restriction in restrictions:
                 restriction = restriction.strip()
-                uri = QgsDataSourceURI()
+                uri = QgsDataSourceUri()
                 user = QSettings().value(SettingsConstants.USER)
                 db = QSettings().value(SettingsConstants.DATABASE_NAME)
                 host = QSettings().value(SettingsConstants.HOST)
@@ -291,7 +291,7 @@ class LayerUtils(object):
                 uri.setDataSource(restriction, layer_name, "geometry", "", id)
 
                 vlayer = QgsVectorLayer(uri.uri(), layer_name, "postgres")
-                QgsMapLayerRegistry.instance().addMapLayer(vlayer, False)
+                QgsProject.instance().addMapLayer(vlayer, False)
                 return vlayer
 
     @staticmethod
@@ -302,7 +302,7 @@ class LayerUtils(object):
         if len(restrictions) > 0:
             for restriction in restrictions:
                 restriction = restriction.strip()
-                uri = QgsDataSourceURI()
+                uri = QgsDataSourceUri()
                 user = QSettings().value(SettingsConstants.USER)
                 db = QSettings().value(SettingsConstants.DATABASE_NAME)
                 host = QSettings().value(SettingsConstants.HOST)
@@ -313,13 +313,13 @@ class LayerUtils(object):
                 uri.setDataSource("data_landuse", layer_name, "geometry", "", id)
 
                 vlayer = QgsVectorLayer(uri.uri(), layer_name, "postgres")
-                QgsMapLayerRegistry.instance().addMapLayer(vlayer, False)
+                QgsProject.instance().addMapLayer(vlayer, False)
                 return vlayer
 
     @staticmethod
     def load_layer_by_name_pasture_monitoring(layer_name, id):
 
-        uri = QgsDataSourceURI()
+        uri = QgsDataSourceUri()
         user = QSettings().value(SettingsConstants.USER)
         db = QSettings().value(SettingsConstants.DATABASE_NAME)
         host = QSettings().value(SettingsConstants.HOST)
@@ -330,7 +330,7 @@ class LayerUtils(object):
         uri.setDataSource("pasture", layer_name, "geometry", "", id)
 
         vlayer = QgsVectorLayer(uri.uri(), layer_name, "postgres")
-        QgsMapLayerRegistry.instance().addMapLayer(vlayer, False)
+        QgsProject.instance().addMapLayer(vlayer, False)
         return vlayer
 
     @staticmethod
@@ -341,7 +341,7 @@ class LayerUtils(object):
         if len(restrictions) > 0:
             for restriction in restrictions:
                 restriction = restriction.strip()
-                uri = QgsDataSourceURI()
+                uri = QgsDataSourceUri()
                 user = QSettings().value(SettingsConstants.USER)
                 db = QSettings().value(SettingsConstants.DATABASE_NAME)
                 host = QSettings().value(SettingsConstants.HOST)
@@ -352,7 +352,7 @@ class LayerUtils(object):
                 uri.setDataSource("settings", layer_name, "geometry", "", id)
 
                 vlayer = QgsVectorLayer(uri.uri(), layer_name, "postgres")
-                QgsMapLayerRegistry.instance().addMapLayer(vlayer, False)
+                QgsProject.instance().addMapLayer(vlayer, False)
                 return vlayer
 
     @staticmethod
@@ -374,7 +374,7 @@ class LayerUtils(object):
     @staticmethod
     def deselect_all():
 
-        layers = QgsMapLayerRegistry.instance().mapLayers()
+        layers = QgsProject.instance().mapLayers()
 
         for id, layer in layers.iteritems():
             if layer.type() == QgsMapLayer.VectorLayer:

@@ -2,7 +2,7 @@ __author__ = 'B.Ankhbold'
 
 from sqlalchemy import String,Date, Integer, Column, Sequence
 from geoalchemy2 import Geometry
-from Base import *
+from .Base import *
 
 
 class SetCertificatePerson(Base):

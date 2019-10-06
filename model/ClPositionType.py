@@ -1,8 +1,7 @@
 __author__ = 'b.ankhbold'
 
 from sqlalchemy import Column, String, Integer
-from Base import *
-
+from .Base import *
 
 class ClPositionType(Base):
 

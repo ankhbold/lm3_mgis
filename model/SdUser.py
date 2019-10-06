@@ -2,9 +2,9 @@ __author__ = 'B.Ankhbold'
 
 from sqlalchemy import Column, String, Integer, Date, Boolean, ForeignKey, Sequence
 from sqlalchemy.orm import relationship
-from ClEmployeeType import *
-from ClUserCancelReason import *
-from Base import *
+from .ClEmployeeType import *
+from .ClUserCancelReason import *
+from .Base import *
 
 
 class SdUser(Base):
@@ -26,5 +26,5 @@ class SdUser(Base):
     updated_by = Column(Integer)
     last_active = Column(Date)
 
-    gis_user_real = Column(Integer, ForeignKey('set_role.user_name_real'))
+    gis_user_real = Column(Integer, ForeignKey('set_role_user.user_name_real'))
     gis_user_real_ref = relationship("SetRole")

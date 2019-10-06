@@ -10,9 +10,9 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from ..model.Singleton import Singleton
 from ..model import Constants
+import base64
 
-
-class LM2Logger(QObject):
+class LM3Logger(QObject):
 
     __metaclass__ = Singleton
 
@@ -47,6 +47,6 @@ class LM2Logger(QObject):
             QMessageBox.information(None, self.tr("Logging error"), self.tr("Could not open log file: {0}").format(e.strerror))
             return
 
-        test_file.writelines([log_string.encode("UTF-8")])
+        # test_file.writelines([log_string.encode("UTF-8")])
         test_file.close()
 

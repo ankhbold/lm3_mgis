@@ -2,8 +2,7 @@
 __author__ = 'Ankhaa'
 from sqlalchemy import Column, String, Float, Date
 from geoalchemy2 import Geometry
-from Base import *
-
+from .Base import *
 
 class CaBuilding(Base):
 

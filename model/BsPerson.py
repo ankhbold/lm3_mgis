@@ -2,9 +2,13 @@ __author__ = 'B.Ankhbold'
 
 from sqlalchemy import Column, Integer, String, ForeignKey, Date, DateTime, Sequence
 from sqlalchemy.orm import relationship
-from CtArchivedFee import *
-from CtArchivedTaxAndPrice import *
-
+from .CtArchivedFee import *
+from .CtArchivedTaxAndPrice import *
+from .ClPersonType import *
+from .ClCountryList import *
+from .ClGender import *
+from .ClBank import *
+from .AuKhoroolol import *
 
 class BsPerson(Base):
 

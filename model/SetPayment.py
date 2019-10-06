@@ -1,7 +1,7 @@
 __author__ = 'B.Ankhbold'
 
 from sqlalchemy import Column, Numeric, Integer, Sequence
-from Base import *
+from .Base import *
 
 
 class SetPayment(Base):

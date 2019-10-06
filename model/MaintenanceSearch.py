@@ -2,7 +2,7 @@ __author__ = 'B.Ankhbold'
 
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
-from Base import *
+from .Base import *
 from ClApplicationStatus import *
 from ClApplicationType import *
 from SetRole import *

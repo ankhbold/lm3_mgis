@@ -2,7 +2,7 @@ __author__ = 'Ankhbold'
 
 from sqlalchemy import Column, Integer, String, ForeignKey, String
 from sqlalchemy.orm import relationship
-from Base import *
+from .Base import *
 
 
 class PsNaturalZoneLandForm(Base):

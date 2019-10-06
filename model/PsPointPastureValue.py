@@ -1,7 +1,7 @@
 __author__ = 'B.Ankhbold'
 
 from sqlalchemy import ForeignKey, Column, String, Integer, Numeric, Boolean
-from Base import *
+from .Base import *
 from sqlalchemy.orm import relationship
 from ClBioMass import *
 

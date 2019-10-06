@@ -2,7 +2,7 @@ __author__ = 'B.Ankhbold'
 
 from sqlalchemy import Column, Date, ForeignKey, Integer, String, Boolean
 from sqlalchemy.orm import relationship
-from Base import *
+from .Base import *
 
 class SetPositionGroupRole(Base):
 

@@ -1,7 +1,7 @@
 __author__ = 'B.Ankhbold'
 
 from sqlalchemy import ForeignKey, Column, String, Integer, Numeric, Boolean, Float
-from Base import *
+from .Base import *
 from sqlalchemy.orm import relationship
 from CtFeePayment import *
 from CtFineForFeePayment import *

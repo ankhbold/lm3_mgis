@@ -1,6 +1,6 @@
 __author__ = 'B.Ankhbold'
 from PyQt5.QtCore import *
-
+from sip import wrappertype as pyqtWrapperType
 
 class Singleton(pyqtWrapperType):
 

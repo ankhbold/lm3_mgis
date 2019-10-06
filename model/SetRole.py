@@ -2,14 +2,18 @@ __author__ = 'B.Ankhbold'
 
 from sqlalchemy import Column, String, Integer, Date, Boolean, ForeignKey, Sequence
 from sqlalchemy.orm import relationship
-from ClEmployeeType import *
-from ClUserCancelReason import *
-from Base import *
-
+from .ClEmployeeType import *
+from .ClUserCancelReason import *
+from .Base import *
+from .SdPosition import *
+from .SdOrganization import *
+from .SdDepartment import *
+from .ClOrganizationType import *
+from .PlProject import *
 
 class SetRole(Base):
 
-    __tablename__ = 'set_role'
+    __tablename__ = 'set_role_user'
 
     user_name = Column(String)
     surname = Column(String)

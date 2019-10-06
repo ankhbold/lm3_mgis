@@ -2,9 +2,9 @@ __author__ = 'Ankhbold'
 
 from sqlalchemy import Column, String, Integer, Date,DateTime, Boolean, ForeignKey, Sequence
 from sqlalchemy.orm import relationship
-from ClEmployeeType import *
-from ClUserCancelReason import *
-from Base import *
+from .ClEmployeeType import *
+from .ClUserCancelReason import *
+from .Base import *
 
 
 class SdEmployee(Base):

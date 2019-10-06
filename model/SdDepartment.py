@@ -2,7 +2,9 @@ __author__ = 'B.Ankhbold'
 
 from sqlalchemy import Column, Integer, String, Date, DateTime, ForeignKey,Sequence
 from sqlalchemy.orm import relationship, backref
-from Base import *
+from .Base import *
+from .AuLevel2 import *
+from .AuLevel1 import *
 
 class SdDepartment(Base):
 

@@ -2,7 +2,7 @@ __author__ = 'B.Ankhbold'
 
 from sqlalchemy import Column, Integer, String, Date, Sequence, ForeignKey, DateTime, Table
 from sqlalchemy.orm import relationship, backref
-from Base import *
+from .Base import *
 
 class SetEquipment(Base):
 
@@ -19,7 +19,7 @@ class SetEquipment(Base):
     type = Column(Integer, ForeignKey('cl_equipment_list.code'))
     type_ref = relationship("ClEquipmentList")
 
-    officer_user = Column(String, ForeignKey('set_role.user_name_real'))
+    officer_user = Column(String, ForeignKey('set_role_user.user_name_real'))
     officer_user_ref = relationship("SetRole")
 
     aimag = Column(String, ForeignKey('au_level1.code'))

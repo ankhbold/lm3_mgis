@@ -1,8 +1,7 @@
 __author__ = 'Ankhaa'
 
 from sqlalchemy import Column, String, Integer, Sequence, ForeignKey
-from Base import *
-
+from .Base import *
 
 class SetSurveyor(Base):
 

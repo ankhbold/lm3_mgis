@@ -1,7 +1,7 @@
 __author__ = 'Ankhbold'
 
 from sqlalchemy import ForeignKey, Column, String, Integer, Numeric, Date
-from Base import *
+from .Base import *
 from sqlalchemy.orm import relationship
 
 class PsPointDaatsValue(Base):

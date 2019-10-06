@@ -111,7 +111,7 @@ RECORD_STATUS_CANCELLED = 30
 ADVANCED_RIGHT_TYPE = 20
 STANDARD_RIGHT_TYPE = 10
 
-from Enumerations import ApplicationType
+from .Enumerations import ApplicationType
 APPLICATION_TYPE_WITH_DURATION = [ApplicationType.possession_right, ApplicationType.use_right,
                                   ApplicationType.transfer_possession_right,  ApplicationType.mortgage_possession,
                                   ApplicationType.change_land_use, ApplicationType.extension_possession,

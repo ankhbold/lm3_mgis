@@ -2,11 +2,12 @@ __author__ = 'B.Ankhbold'
 
 from sqlalchemy import Column, Integer, String, ForeignKey, Date, DateTime
 from sqlalchemy.orm import relationship
-from Base import *
-from ClApplicationStatus import *
-from ClApplicationType import *
-from SetRole import *
-
+from .Base import *
+from .ClApplicationStatus import *
+from .ClApplicationType import *
+from .SetRole import *
+from .ClPastureType import *
+from .SetRole import SetRole
 
 class ApplicationPastureSearch(Base):
 

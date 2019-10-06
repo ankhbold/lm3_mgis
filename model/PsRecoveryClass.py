@@ -1,7 +1,7 @@
 __author__ = 'Ankhbold'
 
 from sqlalchemy import Column, Integer, String, ForeignKey, Date, Numeric
-from Base import *
+from .Base import *
 
 
 class PsRecoveryClass(Base):

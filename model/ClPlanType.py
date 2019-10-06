@@ -1,8 +1,7 @@
 __author__ = 'B.Ankhbold'
 
 from sqlalchemy import Column, String, Integer, Boolean, DateTime
-from Base import *
-
+from .Base import *
 
 class ClPlanType(Base):
 

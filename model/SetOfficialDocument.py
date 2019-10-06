@@ -1,7 +1,7 @@
 __author__ = 'B.Ankhbold'
 
 from sqlalchemy import Column, String, Integer, Sequence, Binary, Boolean
-from Base import *
+from .Base import *
 
 
 class SetOfficialDocument(Base):

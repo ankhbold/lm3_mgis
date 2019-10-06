@@ -1,7 +1,7 @@
 __author__ = 'ankhbold'
 from sqlalchemy import Column, String, Float, Date, ForeignKey, Integer, Table
 from sqlalchemy.orm import relationship
-from Base import *
+from .Base import *
 
 class SParcelPerson(Base):
 

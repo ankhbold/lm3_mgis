@@ -1,8 +1,7 @@
 __author__ = 'B.Ankhbold'
 
 from sqlalchemy import Column, String, Integer
-from Base import *
-
+from .Base import *
 
 class ClGroupRole(Base):
 

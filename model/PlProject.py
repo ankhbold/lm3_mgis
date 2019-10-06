@@ -2,7 +2,9 @@ __author__ = 'B.Ankhbold'
 
 from sqlalchemy import Column, Integer, String, Date, Sequence, ForeignKey, DateTime, Table, Boolean
 from sqlalchemy.orm import relationship, backref
-from SetWorkruleStatus import *
+from .SetWorkruleStatus import *
+from .ClPlanType import *
+from .ClPlanDecisionLevel import *
 
 class PlProject(Base):
 

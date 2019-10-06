@@ -1,5 +1,5 @@
 <RCC>
-  <qresource prefix="/plugins/lm2">
+  <qresource prefix="/plugins/lm3">
     <file alias="about.png">icons/about.png</file>
     <file alias="down_button.png">icons/down_button.png</file>
     <file alias="up_button.png">icons/up_button.png</file>

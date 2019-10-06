@@ -3,7 +3,7 @@ __author__ = 'B.Ankhbold'
 from sqlalchemy import Column, Integer, String, ForeignKey, Date, Numeric
 from sqlalchemy.orm import relationship
 from geoalchemy2 import Geometry
-from Base import *
+from .Base import *
 
 class PsPastureBoundary(Base):
 

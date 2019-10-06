@@ -3,7 +3,7 @@ __author__ = 'B.Ankhbold'
 from sqlalchemy import Column, Integer, String, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 from ClLanduseType import *
-from Base import *
+from .Base import *
 
 
 class ParcelSearch(Base):

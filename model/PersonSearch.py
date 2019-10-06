@@ -1,7 +1,7 @@
 __author__ = 'B.Ankhbold'
 
 from sqlalchemy import Column, Integer, String, Date
-from Base import *
+from .Base import *
 
 
 class PersonSearch(Base):

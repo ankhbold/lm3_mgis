@@ -2,9 +2,8 @@ __author__ = 'B.Ankhbold'
 
 from sqlalchemy import Column, String, Integer, Date, DateTime, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
-from Base import *
-from SetRole import *
-
+from .Base import *
+from .SetRole import *
 
 class ClPlanZone(Base):
 

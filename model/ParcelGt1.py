@@ -4,7 +4,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey,Float,Numeric,Date
 from sqlalchemy.orm import relationship
 from geoalchemy2 import Geometry
 from ClLanduseType import *
-from Base import *
+from .Base import *
 
 
 class ParcelGt1(Base):
