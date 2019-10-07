@@ -13,6 +13,7 @@ from ..model.SetRole import SetRole
 from ..model.Constants import *
 
 class SessionHandler(QObject):
+
     __metaclass__ = Singleton
 
     def __init__(self, parent=None):
@@ -28,13 +29,16 @@ class SessionHandler(QObject):
         return self.password
 
     def session_instance(self):
+
         return self.session
+        # return 1
 
     def get_connection(self):
 
         connection = self.engine.connect()
         return connection
 
+    @property
     def create_session(self, user, password, host, port, database):
 
         if self.session is not None:
@@ -45,12 +49,13 @@ class SessionHandler(QObject):
         self.password = password
         Session = sessionmaker(bind=self.engine)
         self.session = Session()
+
         self.session.autocommit = False
         self.session.execute(set_search_path)
 
         set_role_count = self.session.query(SetRole).filter(SetRole.user_name == user).filter(
             SetRole.is_active == True).count()
-        print (set_role_count)
+
         if set_role_count == 0:
             QMessageBox.information(None, self.tr("Connection Error"),
                                     self.tr("The user name {0} is not registered.").format(user))
@@ -67,18 +72,16 @@ class SessionHandler(QObject):
             auLevel2 = auLevel2.strip()
             schemaList.append("s" + auLevel2)
 
-        schema_string = ",".join(schemaList)
-
         self.session.execute(set_search_path)
         self.session.commit()
 
         return True
 
-        # except SQLAlchemyError, e:
+        # except SQLAlchemyError:
         #     self.session = None
         #     self.engine = None
         #     self.password = None
-        #     raise e
+        #     raise
 
     def destroy_session(self):
 

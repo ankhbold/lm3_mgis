@@ -5,7 +5,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtSql import QSqlDatabase
 from qgis.core import *
 
-from SessionHandler import SessionHandler
+from .SessionHandler import SessionHandler
 from ..model.ClPlanType import *
 from ..model import SettingsConstants
 from ..model import Constants
@@ -18,7 +18,7 @@ class LayerUtils(object):
     def layer_by_name(layer_name):
         layers = QgsProject.instance().mapLayers()
 
-        for id, layer in layers.iteritems():
+        for id, layer in layers.items():
             if layer.name() == layer_name:
                 return layer
 
@@ -29,7 +29,7 @@ class LayerUtils(object):
 
         layers = QgsProject.instance().mapLayers()
 
-        for id, layer in layers.iteritems():
+        for id, layer in layers.items():
             if layer.type() == QgsMapLayer.VectorLayer:
                 uri_string = layer.dataProvider().dataSourceUri()
                 uri = QgsDataSourceUri(uri_string)
@@ -188,18 +188,13 @@ class LayerUtils(object):
 
         is_value = False
         for lyr in QgsProject.instance().mapLayers().values():
-            print lyr.name()
             if lyr.name() == layer_name:
-                print lyr.name()
-                print '---'
-                print layer_name
                 is_value = True
                 break
 
         # for key in QgsProject.instance().mapLayers():
         #     layer = QgsProject.instance().mapLayers()[key]
         #     if layer.name() == layer_name:
-        #         print 'hh'
         #         is_value = True
 
         return is_value
@@ -376,7 +371,7 @@ class LayerUtils(object):
 
         layers = QgsProject.instance().mapLayers()
 
-        for id, layer in layers.iteritems():
+        for id, layer in layers.items():
             if layer.type() == QgsMapLayer.VectorLayer:
                 layer.removeSelection()
 
