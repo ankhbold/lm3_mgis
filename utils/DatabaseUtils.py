@@ -8,6 +8,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import func
 from datetime import date, datetime
 from .SessionHandler import SessionHandler
+from ..model.Enumerations import UserRight
 from ftplib import FTP, error_perm
 import urllib
 import hashlib

@@ -730,7 +730,7 @@ class LM3Plugin:
         self.cama_navigator_action.setEnabled(True)
         self.about_action.setEnabled(True)
 
-        self.__create_navigator()
+        # self.__create_navigator()
 
         # self.__create_pasture()
 

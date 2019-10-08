@@ -16,6 +16,8 @@ class SessionHandler(QObject):
 
     __metaclass__ = Singleton
 
+    session_static = None
+
     def __init__(self, parent=None):
 
         super(QObject, self).__init__(parent)
@@ -30,7 +32,7 @@ class SessionHandler(QObject):
 
     def session_instance(self):
 
-        return self.session
+        return SessionHandler.session_static
         # return 1
 
     def get_connection(self):
@@ -38,22 +40,22 @@ class SessionHandler(QObject):
         connection = self.engine.connect()
         return connection
 
-    @property
+    # @property
     def create_session(self, user, password, host, port, database):
 
-        if self.session is not None:
-            self.session.close()
+        if SessionHandler.session_static is not None:
+            SessionHandler.session_static.close()
 
         # try:
         self.engine = create_engine("postgresql://{0}:{1}@{2}:{3}/{4}".format(user, password, host, port, database))
         self.password = password
         Session = sessionmaker(bind=self.engine)
-        self.session = Session()
+        SessionHandler.session_static = Session()
 
-        self.session.autocommit = False
-        self.session.execute(set_search_path)
+        SessionHandler.session_static.autocommit = False
+        SessionHandler.session_static.execute(set_search_path)
 
-        set_role_count = self.session.query(SetRole).filter(SetRole.user_name == user).filter(
+        set_role_count = SessionHandler.session_static.query(SetRole).filter(SetRole.user_name == user).filter(
             SetRole.is_active == True).count()
 
         if set_role_count == 0:
@@ -64,7 +66,7 @@ class SessionHandler(QObject):
             self.password = None
             return False
 
-        setRole = self.session.query(SetRole).filter(SetRole.user_name == user).filter(SetRole.is_active == True).one()
+        setRole = SessionHandler.session_static.query(SetRole).filter(SetRole.user_name == user).filter(SetRole.is_active == True).one()
         auLevel2List = setRole.restriction_au_level2.split(",")
         schemaList = []
 
@@ -72,8 +74,8 @@ class SessionHandler(QObject):
             auLevel2 = auLevel2.strip()
             schemaList.append("s" + auLevel2)
 
-        self.session.execute(set_search_path)
-        self.session.commit()
+        SessionHandler.session_static.execute(set_search_path)
+        SessionHandler.session_static.commit()
 
         return True
 
@@ -85,6 +87,6 @@ class SessionHandler(QObject):
 
     def destroy_session(self):
 
-        if self.session is not None:
-            self.session.close()
-            self.session = None
+        if SessionHandler.session_static is not None:
+            SessionHandler.session_static.close()
+            SessionHandler.session_static = None
